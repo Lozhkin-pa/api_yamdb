@@ -26,9 +26,9 @@ class CategoryViewSet(ListCreateDestroyViewSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
 
