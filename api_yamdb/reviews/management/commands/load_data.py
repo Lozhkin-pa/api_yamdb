@@ -29,6 +29,8 @@ class Command(BaseCommand):
                     model.objects.bulk_create(
                         model(**data) for data in csv_reader
                     )
-                self.stdout.write(self.style.SUCCESS(f'Файл "{csv_load_file}" загружен!'))
+                self.stdout.write(
+                    self.style.SUCCESS(f'Файл "{csv_load_file}" загружен!')
+                )
             except ValueError as error:
-                print(f'Ошибка при загрузке файла "{csv_load_file}"! {error}')
+                print(f'Ошибка при загрузке файла "{csv_load_file}": {error}')
