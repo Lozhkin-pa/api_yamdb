@@ -1,9 +1,8 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
-from reviews.models import (
-    Category, Comment, Genre, Review, Title, User, CHOICES
-)
+from reviews.models import (Category, Comment, Genre, Review, Title)
+from users.models import User, CHOICES
 import datetime as dt
 
 
@@ -33,6 +32,7 @@ class RoleSerializer(UserSerializer):
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = User
         fields = ('username', 'email',)
@@ -94,7 +94,7 @@ class TitleReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = [
-            'id', 'name', 'year', 'description', 'genre', 'category'
+            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
         ]
 
 
@@ -108,7 +108,6 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         slug_field='slug',
         many=True
     )
-    rating = serializers.IntegerField()
 
     class Meta:
         model = Title

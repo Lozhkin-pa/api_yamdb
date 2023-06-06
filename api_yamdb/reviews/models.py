@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from users.models import User
 
 
 class Category(models.Model):
@@ -18,6 +19,7 @@ class Category(models.Model):
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
+        ordering = ('name',)
     
     def __str__(self):
         return self.name
@@ -39,6 +41,7 @@ class Genre(models.Model):
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -82,13 +85,10 @@ class Title(models.Model):
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
+        ordering = ('-year', 'name',)
 
     def __str__(self):
         return self.name
-
-
-class User(models.Model):
-    pass
 
 
 class Review(models.Model):

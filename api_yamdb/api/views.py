@@ -1,6 +1,5 @@
 from rest_framework import mixins, viewsets, filters, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from django.db.models import Avg
@@ -11,12 +10,13 @@ from django.conf import settings
 from django_filters.rest_framework import DjangoFilterBackend
 from smtplib import SMTPResponseException
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import Category, Genre, Title, Review, User
-from filters import TitleFilter
-from permissions import (
+from reviews.models import Category, Genre, Title, Review
+from users.models import User
+from api.filters import TitleFilter
+from .permissions import (
     IsAdminOrReadOnly, AdminOrModeratorIsAuthorPermission, IsAdmin
 )
-from serializers import (
+from .serializers import (
     CategorySerializer,
     GenreSerializer,
     TitleReadSerializer,
@@ -25,7 +25,8 @@ from serializers import (
     CommentSerializer,
     UserSerializer,
     CreateUserSerializer,
-    CreateTokenSerializer
+    CreateTokenSerializer,
+    RoleSerializer
 )
 
 
@@ -37,7 +38,7 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
 
-    @action(detail=False, methods=['get', 'patch'], 
+    @action(detail=False, methods=['get', 'patch'],
     permission_classes=[IsAuthenticated], url_path='me')
     def me(self, request):
         user = request.user
@@ -48,7 +49,6 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save(role=user.role, partial=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 @api_view(['POST'])
 @permission_classes((AllowAny,))
@@ -62,10 +62,10 @@ def create_user(request):
 
     try:
         send_mail(
-        subject=settings.DEFAULT_EMAIL_SUBJECT,
-        message=user.confirmation_code,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=(email,)
+            subject=settings.DEFAULT_EMAIL_SUBJECT,
+            message=user.confirmation_code,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=(email,)
         )
         return Response(data=serializer.data, status=status.HTTP_200_OK)
     except SMTPResponseException:
@@ -110,7 +110,6 @@ class CategoryViewSet(ListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
