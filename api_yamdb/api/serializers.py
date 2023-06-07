@@ -15,7 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             'username', 'email', 'first_name', 'last_name', 'role', 'bio'
         )
-    
+
     def validate_username(self, name):
         if name == 'me':
             raise serializers.ValidationError('Имя ME')
@@ -28,6 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Email пуст')
         return email
 
+
 class RoleSerializer(UserSerializer):
     role = serializers.CharField(read_only=True)
 
@@ -39,7 +40,7 @@ class CreateUserSerializer(serializers.Serializer):
     class Meta:
         model = User
         fields = ('username', 'email',)
-    
+
     def validate_username(self, data):
         username = data
         email = self.initial_data.get('email')
@@ -59,6 +60,7 @@ class CreateUserSerializer(serializers.Serializer):
         ):
             raise serializers.ValidationError('Email уже есть')
         return data
+
 
 class CreateTokenSerializer(serializers.Serializer):
     username = serializers.CharField()

@@ -117,6 +117,7 @@ def create_user(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
+
 @api_view(['POST'])
 def create_token(request):
     serializer = CreateTokenSerializer(data=request.data)
