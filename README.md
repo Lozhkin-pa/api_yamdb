@@ -42,8 +42,14 @@
 > cd api_yamdb
 > python manage.py migrate
 ```
-5. Создайте суперпользователя: `python manage.py createsuperuser`
-6. Запустите проект: `python manage.py runserver`
+5. Создайте суперпользователя
+```
+> python manage.py createsuperuser
+```
+6. Запустите проект
+```
+> python manage.py runserver
+```
 
 ## __Примеры запросов к API__
 После выполнения установки и запуска проекта будет доступна документация: `http://127.0.0.1:8000/redoc/`
