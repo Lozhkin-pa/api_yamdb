@@ -30,13 +30,36 @@ from .serializers import (
 from django.db import IntegrityError
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class ListRetrieveCreateDestroyViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    pass
+
+
+class UserViewSet(ListRetrieveCreateDestroyViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdmin,)
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
+
+    def patch(self, request, username):
+        user = get_object_or_404(User, username=username)
+        if request.method == 'PATCH':
+            serializer = self.get_serializer(
+                user, data=request.data, partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save(role=user.role, partial=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(
+            data=request.data, status=status.HTTP_400_BAD_REQUEST
+        )
 
     @action(
         detail=False,
@@ -73,10 +96,9 @@ def create_user(request):
         )
     except IntegrityError:
         return Response(
-            'Email и username уже существуют!',
+            'Такие Email и username уже существуют!',
             status=status.HTTP_400_BAD_REQUEST
         )
-    token = default_token_generator.make_token(user)
 
     try:
         send_mail(
@@ -152,10 +174,6 @@ class TitleViewSet(viewsets.ModelViewSet):
     ordering_fields = ('name',)
 
     def get_serializer_class(self):
-        """
-        Если запрашиваемый метод GET - применяется TitleReadSerializer.
-        Для остальных методов - TitleWriteSerializer.
-        """
         if self.request.method == 'GET':
             return TitleReadSerializer
         return TitleWriteSerializer
