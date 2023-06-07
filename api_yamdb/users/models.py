@@ -28,7 +28,7 @@ class User(AbstractUser):
         max_length=100,
         verbose_name='Токен пользователя',
     )
-    
+
     def __str__(self):
         return '%s' % (self.username)
 
