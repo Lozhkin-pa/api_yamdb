@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from reviews.models import (Category, Comment, Genre, Review, Title)
 from users.models import User, CHOICES
 import datetime as dt
+import re
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -31,21 +32,22 @@ class RoleSerializer(UserSerializer):
     role = serializers.CharField(read_only=True)
 
 
-class CreateUserSerializer(serializers.ModelSerializer):
-    
+class CreateUserSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True, max_length=150)
+    email = serializers.EmailField(required=True, max_length=254)
+
     class Meta:
         model = User
         fields = ('username', 'email',)
-
-    def validate_username(self, value):
-        if value == 'me':
-            raise serializers.ValidationError([
-                'Не может быть равно me и содержит только латиницу'])
-        return value
     
-    def validate(self, data):
-        username = data.get('username')
-        email = data.get('email')
+    def validate_username(self, data):
+        username = data
+        email = self.initial_data.get('email')
+        if username == 'me':
+            raise serializers.ValidationError(
+                'Не может быть равно "me"')
+        if not re.match(r'^[\w.@+-]+$', username):
+            raise serializers.ValidationError('Некорректный формат записи!')
         if (
             User.objects.filter(username=username).exists()
             and User.objects.get(username=username).email != email

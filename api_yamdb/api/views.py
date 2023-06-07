@@ -26,8 +26,8 @@ from .serializers import (
     UserSerializer,
     CreateUserSerializer,
     CreateTokenSerializer,
-    RoleSerializer
 )
+from django.db import IntegrityError
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -38,17 +38,27 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
 
-    @action(detail=False, methods=['get', 'patch'],
-    permission_classes=[IsAuthenticated], url_path='me')
+    @action(
+        detail=False,
+        methods=['get', 'patch'],
+        permission_classes=[IsAuthenticated],
+        url_path='me'
+    )
     def me(self, request):
         user = request.user
         if request.method == 'GET':
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        serializer = self.get_serializer(user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(role=user.role, partial=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.method == 'PATCH':
+            serializer = self.get_serializer(user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(role=user.role, partial=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(
+            data=request.data,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
 
 @api_view(['POST'])
 @permission_classes((AllowAny,))
@@ -57,7 +67,15 @@ def create_user(request):
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data.get('username')
     email = serializer.validated_data.get('email')
-    user, created = User.objects.get_or_create(username=username, email=email)
+    try:
+        user, created = User.objects.get_or_create(
+            username=username, email=email
+        )
+    except IntegrityError:
+        return Response(
+            'Email и username уже существуют!',
+            status=status.HTTP_400_BAD_REQUEST
+        )
     token = default_token_generator.make_token(user)
 
     try:
