@@ -55,9 +55,66 @@
 После выполнения установки и запуска проекта будет доступна документация: `http://127.0.0.1:8000/redoc/`
 Каждый ресурс API описан: указаны эндпоинты (адреса, по которым можно сделать запрос), разрешённые типы запросов, права доступа и дополнительные параметры, когда это необходимо.
 ```
-> GET /api/v1/users/ - Получение списка всех пользователей
-> GET /api/v1/genres/ - получение списка всех жанров
-> GET /api/v1/titles/ - получение списка всех произведений
+> GET /api/v1/users/ - получение списка всех пользователей (в формате json):
+
+{
+  "count": 0,
+  "next": "string",
+  "previous": "string",
+  "results": [
+    {
+      "username": "string",
+      "email": "user@example.com",
+      "first_name": "string",
+      "last_name": "string",
+      "bio": "string",
+      "role": "user"
+    }
+  ]
+}
+```
+```
+> GET /api/v1/genres/ - получение списка всех жанров (в формате json):
+
+{
+  "count": 0,
+  "next": "string",
+  "previous": "string",
+  "results": [
+    {
+      "name": "string",
+      "slug": "string"
+    }
+  ]
+}
+```
+```
+> GET /api/v1/titles/ - получение списка всех произведений (в формате json):
+
+{
+  "count": 0,
+  "next": "string",
+  "previous": "string",
+  "results": [
+    {
+      "id": 0,
+      "name": "string",
+      "year": 0,
+      "rating": 0,
+      "description": "string",
+      "genre": [
+        {
+          "name": "string",
+          "slug": "string"
+        }
+      ],
+      "category": {
+        "name": "string",
+        "slug": "string"
+      }
+    }
+  ]
+}
 ```
 
 ## __Технологии__
