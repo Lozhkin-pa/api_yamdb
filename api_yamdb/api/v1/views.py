@@ -12,7 +12,7 @@ from smtplib import SMTPResponseException
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Title, Review
 from users.models import User
-from api.filters import TitleFilter
+from .filters import TitleFilter
 from .permissions import (
     IsAdminOrReadOnly, AdminOrModeratorIsAuthorPermission, IsAdmin
 )
@@ -27,7 +27,6 @@ from .serializers import (
     CreateUserSerializer,
     CreateTokenSerializer,
 )
-from django.db import IntegrityError
 
 
 class ListRetrieveCreateDestroyViewSet(
@@ -92,20 +91,14 @@ def create_user(request):
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data.get('username')
     email = serializer.validated_data.get('email')
-    try:
-        user, created = User.objects.get_or_create(
-            username=username, email=email
-        )
-    except IntegrityError:
-        return Response(
-            'Такие Email и username уже существуют!',
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
+    user, created = User.objects.get_or_create(
+        username=username, email=email
+    )
+    confirmation_code = default_token_generator.make_token(user)
     try:
         send_mail(
             subject=settings.DEFAULT_EMAIL_SUBJECT,
-            message=user.confirmation_code,
+            message=f'{confirmation_code}',
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=(email,)
         )
@@ -114,7 +107,7 @@ def create_user(request):
         user.delete()
         return Response(
             data={'error': 'Ошибка отправки кода!'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
 
@@ -186,16 +179,18 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (AdminOrModeratorIsAuthorPermission,)
 
-    def get_queryset(self):
+    def get_review(self):
         review = get_object_or_404(
-            Review,
-            id=self.kwargs.get('review_id'))
+            Review, id=self.kwargs.get('review_id')
+        )
+        return review
+
+    def get_queryset(self):
+        review = self.get_review()
         return review.comments.all()
 
     def perform_create(self, serializer):
-        review = get_object_or_404(
-            Review,
-            id=self.kwargs.get('review_id'))
+        review = self.get_review()
         serializer.save(author=self.request.user, review=review)
 
 
@@ -203,14 +198,16 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (AdminOrModeratorIsAuthorPermission,)
 
-    def get_queryset(self):
+    def get_title(self):
         title = get_object_or_404(
-            Title,
-            id=self.kwargs.get('title_id'))
+            Title, id=self.kwargs.get('title_id')
+        )
+        return title
+
+    def get_queryset(self):
+        title = self.get_title()
         return title.reviews.all()
 
     def perform_create(self, serializer):
-        title = get_object_or_404(
-            Title,
-            id=self.kwargs.get('title_id'))
+        title = self.get_title()
         serializer.save(author=self.request.user, title=title)

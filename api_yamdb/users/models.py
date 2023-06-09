@@ -32,7 +32,21 @@ class User(AbstractUser):
     def __str__(self):
         return '%s' % (self.username)
 
+    @property
+    def is_admin(self):
+        return self.role == "admin" or self.is_superuser
+
+    @property
+    def is_moderator(self):
+        return self.role == "moderator"
+
     class Meta:
         verbose_name = ('Пользователь')
         verbose_name_plural = ('Пользователи')
         ordering = ('id',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['username', 'email'],
+                name='unique_username_email'
+            )
+        ]

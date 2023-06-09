@@ -54,7 +54,7 @@ class Title(models.Model):
         help_text='Название произведения',
         db_index=True,
     )
-    year = models.IntegerField(
+    year = models.PositiveIntegerField(
         verbose_name='Год выпуска',
         help_text='Год выпуска',
     )
@@ -107,7 +107,7 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='автор'
     )
-    score = models.IntegerField(
+    score = models.PositiveIntegerField(
         'оценка',
         validators=(
             MinValueValidator(1),
