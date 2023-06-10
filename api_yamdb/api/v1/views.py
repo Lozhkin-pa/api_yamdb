@@ -112,6 +112,7 @@ def create_user(request):
 
 
 @api_view(['POST'])
+@permission_classes((AllowAny,))
 def create_token(request):
     serializer = CreateTokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)

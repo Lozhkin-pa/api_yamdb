@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from reviews.models import (Category, Comment, Genre, Review, Title)
@@ -47,6 +48,25 @@ class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email',)
+        validators = [
+            UniqueTogetherValidator(
+                queryset=User.objects.all(),
+                fields=['username', 'email']
+            )
+        ]
+
+    def run_validators(self, value):
+        for validator in self.validators:
+            if isinstance(validator, UniqueTogetherValidator):
+                self.validators.remove(validator)
+        super(CreateUserSerializer, self).run_validators(value)
+
+    def create(self, validated_data):
+        user, created = User.objects.get_or_create(
+            email=validated_data['email'],
+            username=validated_data['username'],
+        )
+        return user
 
     def validate_username(self, data):
         username = data
